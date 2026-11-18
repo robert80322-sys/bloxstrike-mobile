@@ -46,3 +46,11 @@ loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-
 
 拦 pasteblox 所有 HTTP 回伪成功 + 把 loadstring 载荷落盘（`pasteblox_dump_N.lua`、`pasteblox_traffic.txt`）。
 pasteblox 的 checkpoint 是服务端校验 work.ink 回跳，客户端伪造无效（实测）。
+
+
+---
+
+## Delta / 手机执行器注意
+Delta 没有 `game:HttpGet`（会报 `HttpGet is not a valid member of DataModel`）。
+仓库里的 `loader.lua` / `loader-ffa.lua` 已经改成用 `HttpGet` 全局函数 → `request` → `HttpService` 的兼容链，
+直接粘这两个文件的内容即可。
