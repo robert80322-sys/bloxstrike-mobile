@@ -28,3 +28,21 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/robert80322-sys/bloxs
 
 原版链路：WAD 混淆 → key UI → key-courier 校验 → GitHub init.lua → src/*.lua。
 key 只是外层门面，本体是公开仓库代码，这里已全部内联。
+
+
+---
+
+## 另外：RIVALS FFA FARM (#237069) pasteblox 绕过
+
+```lua
+loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-mobile@v6/rivals-ffa-bypass.lua"))()
+```
+
+或
+
+```lua
+loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-mobile@v6/loader-ffa.lua"))()
+```
+
+拦 pasteblox 所有 HTTP 回伪成功 + 把 loadstring 载荷落盘（`pasteblox_dump_N.lua`、`pasteblox_traffic.txt`）。
+pasteblox 的 checkpoint 是服务端校验 work.ink 回跳，客户端伪造无效（实测）。
