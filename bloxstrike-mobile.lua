@@ -4858,6 +4858,7 @@ function SilentAim.init(Config, Utils)
 
     -- bullet raycast redirection
     local function silentAimPerformRaycast(self, spread)
+        if Config.NO_SPREAD then spread = 0 end -- [no-spread]
         local targetPart = Config.CurrentTargetPart
         local active = (type(Config.isSilentAimActive) == "function") and Config.isSilentAimActive() or (Config.SILENT_AIM_ENABLED ~= false)
 
@@ -4927,7 +4928,7 @@ function SilentAim.init(Config, Utils)
         if _G.__originalPerformRaycast and _G.__originalPerformRaycast ~= silentAimPerformRaycast then
             return _G.__originalPerformRaycast(self, spread)
         end
-        return nativeRaycastWithSpread(self, spread)
+        return nativeRaycastWithSpread(self, Config.NO_SPREAD and 0 or spread)
     end
 
     BulletModule._performRaycast = silentAimPerformRaycast
@@ -13763,6 +13764,52 @@ do
         if Lib and Lib.Notify then Lib:Notify("皮肤修改器已关闭", 3) end
     end
 
+    -- ---------- 暴力参数默认值 ----------
+    if ConfigRef then
+        ConfigRef.NO_SPREAD = (ConfigRef.NO_SPREAD ~= false)
+        ConfigRef.RAGE_AIM = (ConfigRef.RAGE_AIM ~= false)
+        ConfigRef.AUTO_FIRE = (ConfigRef.AUTO_FIRE ~= false)
+        if ConfigRef.RAGE_AIM then
+            ConfigRef.FOV_DEG = ConfigRef.FOV_DEG or 120
+            ConfigRef.AIM_OCCLUSION_CHECK = false
+            ConfigRef.KEEP_TARGET_LOCK = true
+        end
+        ConfigRef.SILENT_AIM_ENABLED = true
+        ConfigRef.TOGGLE_AIM_KEY = "None"
+        ConfigRef.AIM_BIND_MODE = "Toggle"
+    end
+
+    -- ---------- 自动开火 ----------
+    do
+        local RunService = game:GetService("RunService")
+        local vu = nil
+        pcall(function() vu = game:GetService("VirtualUser") end)
+        local busy = false
+        RunService.RenderStepped:Connect(function()
+            if not ConfigRef or ConfigRef.AUTO_FIRE == false then return end
+            local tp = ConfigRef.CurrentTargetPart
+            if not tp or not tp.Parent then return end
+            if busy then return end
+            busy = true
+            local cam = workspace.CurrentCamera
+            local vp = cam and cam.ViewportSize or Vector2.new(400, 400)
+            local pos = Vector2.new(vp.X * 0.5, vp.Y * 0.5)
+            pcall(function()
+                if vu then
+                    vu:Button1Down(pos)
+                    task.wait(0.03)
+                    vu:Button1Up(pos)
+                elseif type(mouse1click) == "function" then
+                    mouse1click()
+                elseif type(mouse1press) == "function" then
+                    mouse1press(); task.wait(0.05); mouse1release()
+                end
+            end)
+            task.wait(0.05)
+            busy = false
+        end)
+    end
+
     -- ---------- 「手机」页 ----------
     local win = UIMan and UIMan.Window
     if win then
@@ -13810,6 +13857,44 @@ do
                 Callback=function(v) API.setPos("bhop", v, (getgenv().Options.BtnBhopY and getgenv().Options.BtnBhopY.Value) or DEF.bhop.y) end})
             pos:AddSlider("BtnBhopY", {Text="BHOP 纵", Default=DEF.bhop.y, Min=-500, Max=500, Rounding=0,
                 Callback=function(v) API.setPos("bhop", (getgenv().Options.BtnBhopX and getgenv().Options.BtnBhopX.Value) or DEF.bhop.x, v) end})
+
+            local rage = tab:AddLeftGroupbox("暴力（全自动）")
+            rage:AddToggle("NoSpread", {
+                Text = "无扩散",
+                Default = true,
+                Tooltip = "把子弹射线传入的 spread 强制改成 0",
+                Callback = function(v) ConfigRef.NO_SPREAD = (v ~= false) end
+            })
+            rage:AddToggle("RageAim", {
+                Text = "暴力自瞄（常开）",
+                Default = true,
+                Tooltip = "不需要按住任何键：视野拉大、关遮挡检测、锁定目标",
+                Callback = function(v)
+                    ConfigRef.RAGE_AIM = (v ~= false)
+                    if v then
+                        ConfigRef.SILENT_AIM_ENABLED = true
+                        ConfigRef.AIM_OCCLUSION_CHECK = false
+                        ConfigRef.KEEP_TARGET_LOCK = true
+                        ConfigRef.TOGGLE_AIM_KEY = "None"
+                        ConfigRef.AIM_BIND_MODE = "Toggle"
+                    end
+                end
+            })
+            rage:AddSlider("RageFov", {
+                Text = "自瞄视野",
+                Default = 120,
+                Min = 10,
+                Max = 360,
+                Rounding = 0,
+                Suffix = "°",
+                Callback = function(v) ConfigRef.FOV_DEG = v end
+            })
+            rage:AddToggle("AutoFire", {
+                Text = "自动开火",
+                Default = true,
+                Tooltip = "锁到目标就自动扣扳机（VirtualUser / mouse1click）",
+                Callback = function(v) ConfigRef.AUTO_FIRE = (v ~= false) end
+            })
 
             local skin = tab:AddRightGroupbox("皮肤修改器")
             skin:AddToggle("SkinChangerEnable", {
