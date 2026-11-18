@@ -54,3 +54,17 @@ pasteblox 的 checkpoint 是服务端校验 work.ink 回跳，客户端伪造无
 Delta 没有 `game:HttpGet`（会报 `HttpGet is not a valid member of DataModel`）。
 仓库里的 `loader.lua` / `loader-ffa.lua` 已经改成用 `HttpGet` 全局函数 → `request` → `HttpService` 的兼容链，
 直接粘这两个文件的内容即可。
+
+
+---
+
+## RIVALS 专用（不是 BloxStrike！）
+BloxStrike 那套模块在 RIVALS 里不存在，跑起来必然 `attempt to call a nil value`。
+RIVALS 用这个：
+
+```lua
+loadstring(G("https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-mobile@v8/rivals-mobile.lua"))()
+```
+
+或直接粘 `loader-rivals.lua` 的内容。功能：静默瞄准（Remotes.Replication.Fighter.UpdateCameraRotation）、
+命中盒瞄准（HitboxHead/HitboxBody）、ESP、自动重生、手机悬浮按钮。
