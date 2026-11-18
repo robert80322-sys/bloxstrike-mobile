@@ -4,7 +4,7 @@ ZOMBIES BloxStrike · Seeto.SolutionZ v2.5 手机版（免 key）
 
 ## 一键加载
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/robert80322-sys/bloxstrike-mobile/main/bloxstrike-mobile.lua?v=3"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/robert80322-sys/bloxstrike-mobile/main/bloxstrike-mobile.lua?v=4"))()
 ```
 
 ## 功能

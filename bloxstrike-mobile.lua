@@ -13785,7 +13785,11 @@ do
         local vu = nil
         pcall(function() vu = game:GetService("VirtualUser") end)
         local busy = false
-        RunService.RenderStepped:Connect(function()
+        if _G.__bsAutoFireConn then
+            pcall(function() _G.__bsAutoFireConn:Disconnect() end)
+            _G.__bsAutoFireConn = nil
+        end
+        _G.__bsAutoFireConn = RunService.RenderStepped:Connect(function()
             if not ConfigRef or ConfigRef.AUTO_FIRE == false then return end
             local tp = ConfigRef.CurrentTargetPart
             if not tp or not tp.Parent then return end
