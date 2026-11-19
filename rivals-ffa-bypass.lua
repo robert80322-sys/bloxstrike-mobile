@@ -96,6 +96,18 @@ local FAKE = '{"ok":true,"success":true,"valid":true,"key":"PBBYPASS-0000-0000",
     .. '"state":{"step":1,"total":1,"key":"PBBYPASS-0000-0000","boundToDevice":false}},'
     .. '"state":{"step":1,"total":1,"key":"PBBYPASS-0000-0000"},"message":"ok"}'
 
+
+local respN = 0
+local function maybeDump(url, body)
+    if type(body) ~= "string" then return end
+    if #body > 20000 then
+        respN = respN + 1
+        local f = "pb_resp_" .. respN .. ".lua"
+        pcall(function() if writefile then writefile(f, body) end end)
+        log("SAVE " .. f .. " (" .. #body .. "B) <- " .. tostring(url))
+    end
+end
+
 local function isPB(u) return type(u) == "string" and u:find("pasteblox%.com") ~= nil end
 
 ---------------------------------------------------------------------
@@ -128,7 +140,10 @@ do
                 log("BLOCK request " .. tostring(t.Method or t.method or "GET") .. " " .. tostring(url))
                 return { StatusCode = 200, Status = 200, Success = true, Body = FAKE, Headers = {} }
             end
-            return orig(t)
+            local r2 = orig(t)
+            local b2 = type(r2) == "table" and (r2.Body or r2.body) or r2
+            maybeDump(url, b2)
+            return r2
         end
         request = GENV.request
     end
@@ -140,7 +155,10 @@ do
                 log("BLOCK http_request " .. tostring(url))
                 return { StatusCode = 200, Status = 200, Success = true, Body = FAKE, Headers = {} }
             end
-            return orig(t)
+            local r2 = orig(t)
+            local b2 = type(r2) == "table" and (r2.Body or r2.body) or r2
+            maybeDump(url, b2)
+            return r2
         end
         http_request = GENV.http_request
     end
@@ -187,7 +205,9 @@ do
         local okS = pcall(function()
             game.HttpGet = function(self, url, ...)
                 if isPB(url) then log("BLOCK game:HttpGet " .. tostring(url)) return FAKE end
-                return g(self, url, ...)
+                local r = g(self, url, ...)
+                maybeDump(url, r)
+                return r
             end
         end)
         log("hook game:HttpGet = " .. tostring(okS))
