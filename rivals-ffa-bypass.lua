@@ -155,6 +155,33 @@ do
             return orig(t)
         end
     end
+    -- HttpService 全方法（很多 pasteblox 壳用 RequestAsync/PostAsync）
+    pcall(function()
+        local HS = game:GetService("HttpService")
+        if type(HS.GetAsync) == "function" then
+            local og = HS.GetAsync
+            HS.GetAsync = function(self, url, ...)
+                if isPB(url) then log("BLOCK GetAsync " .. tostring(url)) return FAKE end
+                return og(self, url, ...)
+            end
+        end
+        if type(HS.PostAsync) == "function" then
+            local op = HS.PostAsync
+            HS.PostAsync = function(self, url, body, ...)
+                if isPB(url) then log("BLOCK PostAsync " .. tostring(url)) return FAKE end
+                return op(self, url, body, ...)
+            end
+        end
+        if type(HS.RequestAsync) == "function" then
+            local orq = HS.RequestAsync
+            HS.RequestAsync = function(self, opts, ...)
+                local url = type(opts) == "table" and opts.Url
+                if isPB(url) then log("BLOCK RequestAsync " .. tostring(url)) return { StatusCode = 200, Status = 200, Success = true, Body = FAKE, Headers = {} } end
+                return orq(self, opts, ...)
+            end
+        end
+    end)
+
     local okG, g = pcall(function() return game.HttpGet end)
     if okG and type(g) == "function" then
         local okS = pcall(function()
