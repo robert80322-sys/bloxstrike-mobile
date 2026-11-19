@@ -542,26 +542,39 @@ do
     local s = Instance.new("UIStroke"); s.Color = Color3.fromRGB(80, 255, 175); s.Transparency = 0.4; s.Parent = fab
 end
 
-local fabDrag, fabStart, fabPos = false, nil, nil
+local fabDrag, fabStart, fabPos, fabMoved = false, nil, nil, false
 fab.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.Touch
     or i.UserInputType == Enum.UserInputType.MouseButton1 then
         fabDrag = true
         fabStart = i.Position
         fabPos = fab.Position
+        fabMoved = false
     end
 end)
+local function fabStop()
+    fabDrag = false
+    fabStart = nil
+end
+fab.InputEnded:Connect(fabStop)
+UIS.InputEnded:Connect(fabStop)   -- 手指在任意位置抬起都要复位
 UIS.InputChanged:Connect(function(i)
-    if fabDrag and fabStart
-    and (i.UserInputType == Enum.UserInputType.Touch or i.UserInputType == Enum.UserInputType.MouseMovement) then
-        local d = i.Position - fabStart
-        if d.Magnitude > 6 then
-            fab.Position = UDim2.fromOffset(fabPos.X.Offset + d.X, fabPos.Y.Offset + d.Y)
-        end
+    if not fabDrag or not fabStart then return end
+    if i.UserInputType ~= Enum.UserInputType.Touch
+    and i.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+    local d = i.Position - fabStart
+    if d.Magnitude > 6 then
+        fabMoved = true
+        local cam = workspace.CurrentCamera
+        local vp = cam and cam.ViewportSize or Vector2.new(800, 600)
+        local x = math.clamp(fabPos.X.Offset + d.X, 0, math.max(0, vp.X - 46))
+        local y = math.clamp(fabPos.Y.Offset + d.Y, 0, math.max(0, vp.Y - 46))
+        fab.Position = UDim2.fromOffset(x, y)
     end
 end)
 
 fab.MouseButton1Click:Connect(function()
+    if fabMoved then fabMoved = false return end   -- 拖完那一下不开/关面板
     box.Visible = not box.Visible
     if box.Visible then refreshRows() end
 end)
@@ -891,8 +904,8 @@ RunService.RenderStepped:Connect(function()
         fpsCount, fpsT = 0, now
         stat.Text = string.format("  敌人 %d / 玩家 %d   FPS %d\n  %s",
             nEnemy, nPlayer, fps,
-            (CFG.silentRemote and (RIVALS.ready and "原生 已接" or "原生 未接")) 
-            .. " / " .. (CFG.silent and (silentReady and "hook 已挂" or "hook 失败") or "hook 关"))
+            (CFG.silentRemote and ((RIVALS.ready and "原生 已接") or "原生 未接") or "原生 关")
+            .. " / " .. (CFG.silent and ((silentReady and "hook 已挂") or "hook 失败") or "hook 关"))
     end
 end)
 

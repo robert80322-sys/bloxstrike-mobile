@@ -5,7 +5,7 @@ local URLS = {
     "https://ghproxy.net/" .. RAW,
     "https://gh-proxy.com/" .. RAW,
     "https://ghfast.top/" .. RAW,
-    "https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-mobile@v10/rivals-mobile.lua",
+    "https://cdn.jsdelivr.net/gh/robert80322-sys/bloxstrike-mobile@v12/rivals-mobile.lua",
     "https://raw.githack.com/robert80322-sys/bloxstrike-mobile/main/rivals-mobile.lua",
 }
 
